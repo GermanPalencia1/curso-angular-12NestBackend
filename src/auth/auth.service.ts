@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { CreateUserDto, LoginDto, RegisterUserDto, UpdateAuthDto } from './dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
 
 import * as bcryptjs from 'bcryptjs';
-import { LoginDto } from './dto/login.dt';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload';
+import { LoginResponse } from './interfaces/login-response';
+
 
 @Injectable()
 export class AuthService {
@@ -36,8 +36,6 @@ export class AuthService {
       
       await newUser.save();
 
-      //3- Generar JSON WEB TOKEN
-
       const {password: _, ...user} = newUser.toJSON(); 
 
       return user;
@@ -54,7 +52,7 @@ export class AuthService {
 
   }
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<LoginResponse> {
 
     //Verificación del usuario
 
@@ -83,6 +81,16 @@ export class AuthService {
       token: this.getJWToken({id: user.id}),
     }
 
+  }
+
+  async register(registerDto: RegisterUserDto): Promise<LoginResponse> {
+    
+    const user = await this.create(registerDto);
+    
+    return {
+      user: user,
+      token: this.getJWToken({id:user._id})
+    }
   }
 
   findAll() {
