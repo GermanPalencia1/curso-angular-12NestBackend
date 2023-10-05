@@ -9,3 +9,7 @@ Levantar el Backend
 docker compose up -d
 ...
 Copiar el ```.env.template``` y renombrarlos a .```env```
+...
+Iniciar
+
+npm run start:dev
