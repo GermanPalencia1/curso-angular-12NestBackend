@@ -7,13 +7,16 @@ import { Model } from 'mongoose';
 
 import * as bcryptjs from 'bcryptjs';
 import { LoginDto } from './dto/login.dt';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './interfaces/jwt-payload';
 
 @Injectable()
 export class AuthService {
 
   constructor(
     @InjectModel(User.name) 
-    private userModel: Model<User>
+    private userModel: Model<User>,
+    private jwtService: JwtService
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -34,7 +37,6 @@ export class AuthService {
       await newUser.save();
 
       //3- Generar JSON WEB TOKEN
-
 
       const {password: _, ...user} = newUser.toJSON(); 
 
@@ -78,7 +80,7 @@ export class AuthService {
     
     return {
       user: rest,
-      token: 'ABC-123'
+      token: this.getJWToken({id: user.id}),
     }
 
   }
@@ -97,6 +99,11 @@ export class AuthService {
 
   remove(id: number) {
     return `This action removes a #${id} auth`;
+  }
+
+  getJWToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
   }
   
 }
