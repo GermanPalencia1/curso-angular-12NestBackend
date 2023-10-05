@@ -14,6 +14,8 @@ import { User, userSchema } from './entities/user.entity';
         schema: userSchema,
       }
     ]),
+
   ]
 })
+
 export class AuthModule {}
