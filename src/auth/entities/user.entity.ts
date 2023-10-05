@@ -16,7 +16,7 @@ export class User {
     @Prop({default: true})
     isActive: boolean;
 
-    @Prop({type:[String], default['user']}) // user, admin....
+    @Prop({type:[String], default: ['user']}) // user, admin....
     roles: string[];
 
 }
