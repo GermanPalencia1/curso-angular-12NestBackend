@@ -1,10 +1,12 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
 
+import * as bcryptjs from 'bcryptjs';
+import { LoginDto } from './dto/login.dt';
 
 @Injectable()
 export class AuthService {
@@ -14,18 +16,29 @@ export class AuthService {
     private userModel: Model<User>
   ) {}
 
-  create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<User> {
 
     try {
-
-      const newUser = new this.userModel(createUserDto);
-
+      
+      const {password, ...userData} = createUserDto;
+      
       //1- Encriptar la contraseña
 
+      const newUser = new this.userModel({
+        password: bcryptjs.hashSync(password, 10),
+        ...userData
+      });
       
-
       //2- Guardar usuario
-      //3- Generar JWT
+      
+      await newUser.save();
+
+      //3- Generar JSON WEB TOKEN
+
+
+      const {password: _, ...user} = newUser.toJSON(); 
+
+      return user;
 
     } catch(error) {
 
@@ -37,9 +50,36 @@ export class AuthService {
 
     }
 
-    
+  }
 
-    return newUser.save();
+  async login(loginDto: LoginDto) {
+
+    //Verificación del usuario
+
+    const { email, password} = loginDto;
+
+    //Verificar email
+
+    const user = await this.userModel.findOne({email});
+
+    if(!user) {
+      throw new UnauthorizedException('Not valid credentials - email');
+    }
+
+    //Verificar contraseña
+
+    if(!bcryptjs.compareSync(password, user.password)) {
+      throw new UnauthorizedException('Not valid credentials - password');
+    }
+
+    //Respuesta
+
+    const {password: _, ...rest} = user.toJSON();
+    
+    return {
+      user: rest,
+      token: 'ABC-123'
+    }
 
   }
 
