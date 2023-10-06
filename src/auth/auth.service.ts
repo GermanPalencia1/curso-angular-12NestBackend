@@ -45,7 +45,7 @@ export class AuthService {
       if(error.code === 1100) {
         throw new BadRequestException(`${createUserDto.email} already exists`);
       } else {
-        throw new InternalServerErrorException('Somethis terrible happened');
+        throw new InternalServerErrorException('Something terrible happened');
       }
 
     }
